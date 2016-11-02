@@ -14,7 +14,7 @@ Requiring format (example):
 			chr1 1000453 A T
 ```
 
-Files with the above format can be generated using (s1_generating_hetero_genotype.pl). As inputs on a command line, provide two arguments in the following orders : the location of compressed vcf file , tags for output files (ex. tag1). The output files (separated by each individual) are saved at "list_hetero" directory, in the name of tag1.ID .
+Files with the above format can be generated using (s2_generating_hetero_genotype.pl). As inputs on a command line, provide two arguments in the following orders : the location of compressed vcf file , tags for output files (ex. tag1). The output files (separated by each individual) are saved at "list_hetero" directory, in the name of tag1.ID .
 
 
 ### 3 : Generating haplotype-specific BAM files
@@ -41,13 +41,29 @@ For the next step, the required file format is as follows (4 columns):
 		Genename read_count_from_hap1 read_count_from_hap2 total_read_count
 ```
 
-### 5 : Calculating the effect sizes of aseQTL for each gene at individual level
-You can use the R code (s5_get_beta.R) to calculate the effect size of aseQTL at individual level.
+### 5 : Estimating the effect sizes of aseQTL for each gene at individual level
+You can use the R code (s5_get_beta.R) to estimate the effect size of aseQTL at individual level.
 Example of the command line would be like this :
 ```
 Rscript s5_get_beta.R sampleID read_count_file output_file_name
 ```
 s5_get_beta.R and ASE_indiv.R files are should be on the same directory.
+
+### 6 : Estimating the effect size of aseQTL across individuals
+Perl script (s6_beta_to_SNP.pl) will help you to estimate the effect size of aseQTL across individuals. This script requires the perl hash files generated from s1_generating_hetero_genotype.pl and R script meta.R to be in the same directory.
+
+Input command would be something like this :
+```
+perl s6_beta_to_SNP.pl GENE1 1 1300000 directory_having_output_from_step5
+```
+
+Note : Fixed-effect meta analysis based on inverse-variance weights will be performed, so if you does not want this approach, you can delete the following part from the perl script.
+
+```
+system("Rscript meta.R $gene1 $out_dir/beta_$gene1.txt $out_dir/aseQTL_$gene1.txt");
+```
+
+
 
 
 

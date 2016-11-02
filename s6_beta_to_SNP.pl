@@ -3,8 +3,6 @@
 use strict;
 use warnings;
 use Storable;
-use List::Util qw[min max];
-
 
 my $gene1=$ARGV[0]; my $chr1=$ARGV[1]; my $tss1=$ARGV[2]; my $beta_dir=$ARGV[3];
 my %altref_hash = %{retrieve("altref_hash.chr$chr1.hash")};
@@ -58,6 +56,8 @@ for my $id1 (@idlist) {
 	}
 }
 close(OUTA);
+
+system("Rscript meta.R $gene1 $out_dir/beta_$gene1.txt $out_dir/aseQTL_$gene1.txt");
 
 system("rm temp_$gene1\_input");
 print STDOUT "All jobs for $gene1 has been done! \n";

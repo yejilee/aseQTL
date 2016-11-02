@@ -2,8 +2,8 @@
 
 
 ### 1 : Input file
-Expression data : sorted BAM format, separated by each individual. We assumed that these files have been through comprehensive quality control steps.
-Genotype data : VCF format with phasing information 
+#### Expression data : sorted BAM format, separated by each individual. We assume that these files have been through comprehensive quality control steps.
+#### Genotype data : VCF format with phasing information. Like expression data, We also assume that these files have been passed quality controls.
 
 ### 2 : Generating files having the list of heterozygous SNPs for each individual
 We use a R program provided by asSeq (http://www.bios.unc.edu/~weisun/software/asSeq.htm) to specify haplotype-specific reads, which requires specific-format of list of heterozygous SNPs for each chromosome of each individual. 

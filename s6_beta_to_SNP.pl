@@ -5,85 +5,59 @@ use warnings;
 use Storable;
 use List::Util qw[min max];
 
-my $gene1=$ARGV[0];
-my $tss1=$ARGV[1];
-my $cis1=$ARGV[2];
 
+my $gene1=$ARGV[0]; my $chr1=$ARGV[1]; my $tss1=$ARGV[2]; my $beta_dir=$ARGV[3];
+my %altref_hash = %{retrieve("altref_hash.chr$chr1.hash")};
 
-my $in_dir=$ARGV[3];
+my $cis1=100000;
 my $out_dir="beta_SNPs";
 
+
 system("mkdir -p $out_dir");
-system("grep $gene1 $in_dir/* > temp_$gene\_input");
+system("grep -wh $gene1 $beta_dir/* > temp_$gene1\_input");
 
 my $s1=$tss1-$cis1;
 my $s2=$tss1+$cis1;
 
-my %tmp_result_hash;
-LINE : for my $id1 (@id_list) {
-    my $id2=$id1;   $id2 =~ s/M//;
-	my $beta; my $se; my $total_read;
-    my %tmp_hash;
-    system("grep $gene1 $in_dir/$id1.txt > $out_dir/temp_$gene1\_$id1"); 
-    if ( ! -z "$out_dir/temp_$gene1\_$id1") {
-        print STDOUT "processing results for $id1 , $gene1 \n";
-        open(FILEB,"<$out_dir/temp_$gene1\_$id1");
-        while(<FILEB>) {
-            chomp;
-            my @line1=split(/\s+/,$_);
-			$beta=$line1[7];
-			$se=$line1[10];
-			$total_read=$line1[4];
-        }
-        close(FILEB);
-        
-        open(FILEC,"</net/dumbo/home/yejilee/ASE/FUSION_f4/workdir/list_hetero/$chr1\_$id1\_list_hetero.txt");
-        while(<FILEC>) {
-            chomp;
-            my @line2=split(/\s+/,$_);
-            my $tmp_snpname=$chr2.":".$line2[1];	 $tmp_snpname =~ tr/ //ds;	
-            if ( defined $snp_hash{$tmp_snpname} ) {
-            
-            
-                if ($line2[2] eq $snp_hash{$tmp_snpname}{alt} && $line2[1]>=$s1 && $line2[1]<=$s2) {
-                    $tmp_result_hash{$tmp_snpname}{$id1}{beta} = $beta ;
-					$tmp_result_hash{$tmp_snpname}{$id1}{se}=$se;
-					$tmp_result_hash{$tmp_snpname}{$id1}{total_read}=$total_read;
-                } elsif ($line2[2] eq $snp_hash{$tmp_snpname}{ref} && $line2[1]>=$s1 && $line2[1]<=$s2) {
-                    $tmp_result_hash{$tmp_snpname}{$id1}{beta} = -1*$beta;
-					$tmp_result_hash{$tmp_snpname}{$id1}{se}=$se;
-					$tmp_result_hash{$tmp_snpname}{$id1}{total_read}=$total_read;
-                } else {
-                    die "ref and alt is not matching for $id1 , $tmp_snpname !\n";
-                }
-            }
-            }
-            close(FILEC);
-				
-    } else {
-        print STDOUT "no results from $id1 !\n";
-    }
-    system("rm $out_dir/temp_$gene1\_$id1");
+
+for my $k1 (sort keys %altref_hash) {
+	if ($k1 <$s1 || $k1 >$s2 ) {
+		delete $altref_hash{$k1};
+	}
 }
 
-open(OUTA,">$out_dir/beta_$gene1.txt");
-for my $k3 (sort keys %tmp_result_hash) {
-    for my $k4 (sort keys %{$tmp_result_hash{$k3}}) {
+my %tmp_result_hash; my @idlist;
 
-        print OUTA "$gene1\_$k3\t$k4\_$group_list{$k4}\t$tmp_result_hash{$k3}{$k4}{beta}\t$tmp_result_hash{$k3}{$k4}{se}\n";
-    }
+open(FILEA,"<temp_$gene1\_input") || die "Can't open aseQTL results for $gene1!\n";;
+while(<FILEA>) {
+	chomp;
+	my @line1=split(/\s+/,$_);
+	$tmp_result_hash{$line1[1]}{SE}=$line1[10];
+	$tmp_result_hash{$line1[1]}{TOTAL_READS}=$line1[4];
+	$tmp_result_hash{$line1[1]}{BETA}=$line1[7];
+	push(@idlist,$line1[1]);
+}
+close(FILEA);
+
+my $temp_beta;
+open(OUTA,">$out_dir/beta_$gene1.txt");
+print OUTA "GENE\tCHR\tSNP_POS\tID\tBETA\tSE\tTOTAL_READS\n";
+for my $id1 (@idlist) {
+	for my $k2 (sort keys %altref_hash) {
+		if (defined $altref_hash{$k2}{$id1}) {
+			if ($altref_hash{$k2}{$id1} eq "REF") {
+				$temp_beta=-1*$tmp_result_hash{$id1}{BETA};
+			} elsif ($altref_hash{$k2}{$id1} eq "ALT") {
+				$temp_beta=$tmp_result_hash{$id1}{BETA};
+			} else {
+				$temp_beta="NA";
+			}
+			print OUTA "$gene1\t$chr1\t$k2\t$id1\t$temp_beta\t$tmp_result_hash{$id1}{SE}\t$tmp_result_hash{$id1}{TOTAL_READS}\n";
+		}
+
+	}
 }
 close(OUTA);
 
-my $count1=`wc -l $out_dir/beta_$gene1.txt | cut -f1 -d' ' `;
-my $count2=`cut -f2 $out_dir/beta_$gene1.txt | sort | uniq | wc -l | cut -f1 -d' ' `;
-$count1 =~ tr / //ds; $count1=$count1+0;
-$count2 =~ tr / //ds; $count2=$count2+0;
-print STDOUT "$count1\t$count2\n";
-if ($count1 == 0) {
-	system("rm $out_dir/beta_$gene1.txt");
-	print STDOUT "no results for $gene1! \n";
-}
-
-system("rm temp_$gene\_input");
+system("rm temp_$gene1\_input");
 print STDOUT "All jobs for $gene1 has been done! \n";

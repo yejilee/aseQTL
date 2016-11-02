@@ -2,7 +2,7 @@ args=commandArgs(TRUE);
 id1=args[1];
 infile1=args[2];
 outfile1=args[3];
-source("ASE_indiv3.R");
+source("ASE_indiv.R");
 library(methods);
 library(stats4);
 

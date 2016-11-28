@@ -57,7 +57,14 @@ for my $id1 (@idlist) {
 }
 close(OUTA);
 
-system("Rscript meta.R $gene1 $out_dir/beta_$gene1.txt $out_dir/aseQTL_$gene1.txt");
+my $count1=`wc -l < $out_dir/beta_$gene1.txt`;
+
+if ($count1>1) {
+	system("Rscript meta.R $gene1 $out_dir/beta_$gene1.txt $out_dir/aseQTL_$gene1.txt");
+} else {
+	system("rm $out_dir/beta_$gene1.txt");
+	print STDOUT "No aseQTL results for gene $gene1 !\n";
+}
 
 system("rm temp_$gene1\_input");
 print STDOUT "All jobs for $gene1 has been done! \n";

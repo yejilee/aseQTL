@@ -14,7 +14,7 @@ for (i in 1:length(snp_list)) {
 	snp1=snp_list[i]
 	temp_snp=temp_ase[temp_ase$SNP_POS==snp1,]
 	if (dim(temp_snp)[1]==0) {
-		print(paste0("no aseQTL results for ",snp1,"!"))
+		print(paste0("no aseQTL results for SNP",snp1,"!"))
 		next
 	} else {
 		temp_snp$wi=1/((temp_snp$SE)^2)

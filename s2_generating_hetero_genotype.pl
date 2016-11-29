@@ -33,7 +33,6 @@ LINE : while(<FILEA>) {
 			
 			for my $k0 (sort keys %position_hash) {
 			
-					my $ida="M".$k0;
 			
 				my $tmp_line = $line1[$position_hash{$k0}];
 				$tmp_line =~ tr/ //ds;
@@ -42,13 +41,13 @@ LINE : while(<FILEA>) {
 					$hash_ref->{$k0}->{$line1[1]}=join("\t",$line1[3],$line1[4]);
 					#$altref_hash{$line1[1]}{$k0}="REF";
 					
-						$altref_hash{$line1[1]}{$ida}="REF";
+						$altref_hash{$line1[1]}{$k0}="REF";
 					
 				} elsif ($line2[0] eq "1|0") {
 					$hash_ref->{$k0}->{$line1[1]}=join("\t",$line1[4],$line1[3]);
 					#$altref_hash{$line1[1]}{$k0}="ALT";
 					
-						$altref_hash{$line1[1]}{$ida}="ALT";
+						$altref_hash{$line1[1]}{$k0}="ALT";
 				}
 			}
 		}
